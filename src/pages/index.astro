@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../Layouts/BaseLayout.astro';
+import Dashboard from '../components/Dashboard.tsx';
+import ExposureCalculator from '../components/ExposureCalculator.tsx';
+---
+
+<BaseLayout>
+  <div>
+    <Dashboard client:load />
+    <section aria-labelledby="calculator-heading" class="mt-14">
+      <h2 id="calculator-heading" class="text-lg font-semibold text-slate-200 mb-4">
+        📐 Calculadora de Exposición
+      </h2>
+      <ExposureCalculator client:visible />
+    </section>
+  </div>
+</BaseLayout>

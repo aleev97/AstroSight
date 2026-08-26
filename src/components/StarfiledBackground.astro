@@ -1,0 +1,204 @@
+---
+// src/components/StarfieldBackground.astro
+// Fondo decorativo del "cielo nocturno": estrellas titilantes generadas
+// dinámicamente + nebulosas difusas que se mueven muy lento + estrellas
+// fugaces ocasionales. Es 100% CSS/HTML estático (Astro lo renderiza en
+// el servidor), así que no agrega nada al JS que descarga el navegador.
+
+interface Star {
+  top: number;
+  left: number;
+  size: number;
+  delay: number;
+  duration: number;
+}
+
+/**
+ * Genera estrellas con posición y timing aleatorios.
+ * Tres "capas" de tamaño distinto simulan profundidad (parallax visual
+ * estático, sin necesidad de JS de scroll).
+ */
+function generateStars(count: number, minSize: number, maxSize: number): Star[] {
+  return Array.from({ length: count }, () => ({
+    top: Math.random() * 100,
+    left: Math.random() * 100,
+    size: minSize + Math.random() * (maxSize - minSize),
+    delay: Math.random() * 6,
+    duration: 3 + Math.random() * 4,
+  }));
+}
+
+const farStars = generateStars(80, 0.5, 1);
+const midStars = generateStars(45, 1, 1.8);
+const nearStars = generateStars(20, 1.8, 2.6);
+---
+
+<div class="starfield" aria-hidden="true">
+  <!-- Nebulosas: manchas de color difusas que se desplazan muy lento -->
+  <div class="nebula nebula-1"></div>
+  <div class="nebula nebula-2"></div>
+  <div class="nebula nebula-3"></div>
+
+  <!-- Capas de estrellas (lejos → cerca) -->
+  <div class="star-layer">
+    {farStars.map((s) => (
+      <span
+        class="star"
+        style={`top:${s.top}%; left:${s.left}%; width:${s.size}px; height:${s.size}px; animation-delay:${s.delay}s; animation-duration:${s.duration}s;`}
+      />
+    ))}
+    {midStars.map((s) => (
+      <span
+        class="star"
+        style={`top:${s.top}%; left:${s.left}%; width:${s.size}px; height:${s.size}px; animation-delay:${s.delay}s; animation-duration:${s.duration}s;`}
+      />
+    ))}
+    {nearStars.map((s) => (
+      <span
+        class="star star-bright"
+        style={`top:${s.top}%; left:${s.left}%; width:${s.size}px; height:${s.size}px; animation-delay:${s.delay}s; animation-duration:${s.duration}s;`}
+      />
+    ))}
+  </div>
+
+  <!-- Estrellas fugaces: cruzan la pantalla ocasionalmente -->
+  <div class="shooting-star"></div>
+  <div class="shooting-star shooting-star-delayed"></div>
+</div>
+
+<style>
+  .starfield {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    overflow: hidden;
+    pointer-events: none; /* nunca debe interceptar clicks del usuario */
+  }
+
+  .star-layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  .star {
+    position: absolute;
+    border-radius: 9999px;
+    background: #e2e8f0;
+    animation-name: twinkle;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+  }
+
+  .star-bright {
+    background: #fde68a; /* nuestro star-400 */
+    box-shadow: 0 0 4px 1px rgba(253, 230, 138, 0.6);
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.25; }
+    50% { opacity: 1; }
+  }
+
+  /* Nebulosas: muy sutiles (opacity baja) para no competir con el contenido */
+  .nebula {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    opacity: 0.12;
+    will-change: transform;
+  }
+
+  .nebula-1 {
+    top: -10%;
+    left: 10%;
+    width: 45vw;
+    height: 45vw;
+    background: radial-gradient(circle, #6366f1, transparent 70%); /* nebula-500 */
+    animation: drift-1 70s ease-in-out infinite;
+  }
+
+  .nebula-2 {
+    bottom: -15%;
+    right: 5%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, #8b5cf6, transparent 70%);
+    animation: drift-2 85s ease-in-out infinite;
+  }
+
+  .nebula-3 {
+    top: 35%;
+    left: 55%;
+    width: 35vw;
+    height: 35vw;
+    background: radial-gradient(circle, #3b82f6, transparent 70%);
+    opacity: 0.08;
+    animation: drift-3 60s ease-in-out infinite;
+  }
+
+  @keyframes drift-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(6vw, 8vh) scale(1.1); }
+  }
+
+  @keyframes drift-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-8vw, -6vh) scale(1.15); }
+  }
+
+  @keyframes drift-3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-5vw, 5vh) scale(0.95); }
+  }
+
+  /* Estrella fugaz: punto + estela que cruza en diagonal y se desvanece */
+  .shooting-star {
+    position: absolute;
+    top: 15%;
+    left: -10%;
+    width: 3px;
+    height: 3px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.5);
+    animation: shoot 14s linear infinite;
+    animation-delay: 3s;
+  }
+
+  .shooting-star::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 90px;
+    height: 1px;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.8), transparent);
+    transform: translateY(-50%);
+  }
+
+  .shooting-star-delayed {
+    top: 45%;
+    animation-delay: 9s;
+    animation-duration: 16s;
+  }
+
+  @keyframes shoot {
+    0% { transform: translate(0, 0); opacity: 0; }
+    2% { opacity: 1; }
+    15% { transform: translate(60vw, 30vh); opacity: 0; }
+    100% { transform: translate(60vw, 30vh); opacity: 0; }
+  }
+
+  /* Accesibilidad: respetamos si el usuario prefiere menos movimiento
+     (configuración del sistema operativo / navegador) */
+  @media (prefers-reduced-motion: reduce) {
+    .star,
+    .nebula,
+    .shooting-star {
+      animation: none !important;
+    }
+    .star {
+      opacity: 0.6;
+    }
+  }
+</style>

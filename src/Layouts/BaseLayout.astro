@@ -1,0 +1,64 @@
+---
+// src/layouts/BaseLayout.astro
+import '../styles/global.css';
+import StarfieldBackground from '../components/StarfiledBackground.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'AstroSight — Planificador de Astrofotografía',
+  description = 'Planifica tus sesiones de astrofotografía con datos climáticos y astronómicos en tiempo real, potenciado por IA.',
+} = Astro.props;
+
+// Astro.url nos da la URL completa de la página actual, útil para las meta tags
+const canonicalURL = Astro.url;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+    <title>{title}</title>
+
+    <!-- Open Graph: cómo se ve el link al compartirlo en LinkedIn, WhatsApp, etc. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="es_AR" />
+
+    <!-- Twitter/X Card (mismo propósito, para esa plataforma) -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+  </head>
+  <body class="bg-space-950 text-slate-100 font-sans min-h-screen antialiased">
+    <StarfieldBackground />
+
+    <header class="border-b border-space-800/80 backdrop-blur-sm sticky top-0 z-40 bg-space-950/70">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-2">
+        <span class="text-2xl" aria-hidden="true">🔭</span>
+        <h1 class="text-xl font-bold tracking-tight text-star-400">
+          Astro<span class="text-slate-100">Sight</span>
+        </h1>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <slot />
+    </main>
+
+    <footer class="border-t border-space-800/80 mt-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-sm text-slate-500">
+        AstroSight — Datos climáticos y astronómicos con fines de planificación fotográfica.
+      </div>
+    </footer>
+  </body>
+</html>

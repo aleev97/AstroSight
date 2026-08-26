@@ -1,0 +1,12 @@
+/* src/styles/global.css */
+@import "tailwindcss";
+
+/* Definimos nuestra paleta "espacio nocturno" usando @theme (sintaxis v4) */
+@theme {
+  --color-space-950: #030712;
+  --color-space-900: #0a0f1e;
+  --color-space-800: #131b2e;
+  --color-nebula-500: #6366f1;
+  --color-star-400: #fde68a;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
