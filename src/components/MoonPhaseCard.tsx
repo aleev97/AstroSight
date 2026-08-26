@@ -1,6 +1,9 @@
+// src/components/MoonPhaseCard.tsx
+
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Skeleton } from './ui/Skeleton';
+import MoonPhaseIcon from './MoonPhaseIcon';
 import type { MoonPhaseData } from '../Types/Astronomy.types';
 
 interface MoonPhaseCardProps {
@@ -24,8 +27,13 @@ export default function MoonPhaseCard({ data, isLoading }: MoonPhaseCardProps) {
 
       {isLoading && (
         <div className="space-y-3">
-          <Skeleton className="h-7 w-32" />
-          <Skeleton className="h-4 w-24" />
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-14 w-14 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-28" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          </div>
           <Skeleton className="h-2 w-full" />
           <div className="flex justify-between pt-1">
             <Skeleton className="h-3 w-20" />
@@ -40,9 +48,12 @@ export default function MoonPhaseCard({ data, isLoading }: MoonPhaseCardProps) {
 
       {!isLoading && data && (
         <div className="space-y-3">
-          <div>
-            <p className="text-2xl font-bold text-star-400">{data.phaseName}</p>
-            <p className="text-slate-400 text-sm">{data.illumination}% de iluminación</p>
+          <div className="flex items-center gap-4">
+            <MoonPhaseIcon phaseValue={data.phaseValue} size={56} />
+            <div>
+              <p className="text-xl font-bold text-star-400">{data.phaseName}</p>
+              <p className="text-slate-400 text-sm">{data.illumination}% de iluminación</p>
+            </div>
           </div>
 
           <div className="w-full h-2 bg-space-800 rounded-full overflow-hidden">
