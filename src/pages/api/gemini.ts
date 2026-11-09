@@ -1,10 +1,42 @@
 import type { APIRoute } from 'astro';
 import { getAIRecommendation } from '../../services/geminiService';
-import type { AIRecommendationRequest } from '../../Types/ai.types';
+import { checkRateLimit, getClientIp } from '../../services/rateLimit';
+import type { AIRecommendationRequest } from '../../types/ai.types';
 
 export const prerender = false;
 
-export const POST: APIRoute = async ({ request }) => {
+// Máximo 5 consultas por IP cada 10 minutos
+const MAX_REQUESTS = 5;
+const WINDOW_MS = 10 * 60 * 1000;
+
+export const POST: APIRoute = async ({ request, clientAddress }) => {
+  // 1. Rate limiting: lo primero, antes de gastar nada de la cuota de Gemini
+  let ip = 'unknown';
+  try {
+    ip = getClientIp(request, clientAddress);
+  } catch {
+    // Si no se puede determinar la IP, usamos 'unknown' (queda en un cupo compartido)
+  }
+
+  const limit = checkRateLimit(`gemini:${ip}`, MAX_REQUESTS, WINDOW_MS);
+
+  if (!limit.allowed) {
+    const minutes = Math.ceil(limit.retryAfterSeconds / 60);
+    return new Response(
+      JSON.stringify({
+        error: `Alcanzaste el límite de consultas. Probá de nuevo en ${minutes} minuto${minutes === 1 ? '' : 's'}.`,
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(limit.retryAfterSeconds),
+        },
+      }
+    );
+  }
+
+  // 2. Validación del body
   let body: AIRecommendationRequest;
 
   try {
@@ -16,7 +48,6 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
-  // Validación básica de que llegaron los campos mínimos necesarios
   if (
     !body?.locationName ||
     !body?.weather ||
@@ -29,6 +60,7 @@ export const POST: APIRoute = async ({ request }) => {
     );
   }
 
+  // 3. Llamada a Gemini
   try {
     const recommendation = await getAIRecommendation(body);
     return new Response(JSON.stringify(recommendation), {
